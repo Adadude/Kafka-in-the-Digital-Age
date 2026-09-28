@@ -19,4 +19,4 @@ To run the sub studies, run this in the terminal: ".\run_sub_studies.bat"
 
 the automatition script requires that the project runs on a virtual enviroment. This can be done by running "python -m venv .venv", be sure to install all the required packages to the virtual enviroment and not to the global enviroment as that can lead to conflicts with local installs. 
 
-For further information on the codes, refer to "Code_Description".
+For further information on the codes, refer to "Code_Documentation".
