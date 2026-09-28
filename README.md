@@ -24,6 +24,6 @@ The scripts for the thesis can be found within the "annotated" folder.
 
 The "Corpus_Construction" folder contains the scripts required to preprocess the given Kafka Corpus.
 
-The folders "Sub_Study_1", "Sub_Study_2", and "Sub_Study 3" contain the necessary scripts and information for the individual sub_studies.
+The folders "Sub_Study_1", "Sub_Study_2", and "Sub_Study 3" contain the necessary scripts and information for the individual sub-studies.
 
 For further information on the scripts and studies, refer to "Code_Documentation.pdf".
