@@ -15,6 +15,7 @@ The Kafka Corpus is not included within this repository. To gain acess to it, re
 "KafkaCSV.zip" and be located within "..\Kafka_GoodReads\KafkaCSV.zip"
 
 To run the corpus preproccessing code, run this in the terminal: ".\run_corpus.bat" 
+
 To run the sub studies, run this in the terminal: ".\run_sub_studies.bat"
 
 the automatition script requires that the project runs on a virtual enviroment. This can be done by running "python -m venv .venv", be sure to install all the required packages to the virtual enviroment and not to the global enviroment as that can lead to conflicts with local installs. 
