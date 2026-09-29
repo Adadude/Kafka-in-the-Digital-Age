@@ -15,8 +15,15 @@ The Kafka Corpus is not included within this repository. To gain acess to it, re
 "KafkaCSV.zip" and be located within "..\Kafka_GoodReads\KafkaCSV.zip"
 
 To run the corpus preproccessing code, run this in the terminal: ".\run_corpus.bat" 
+
 To run the sub studies, run this in the terminal: ".\run_sub_studies.bat"
 
-the automatition script requires that the project runs on a virtual enviroment, this can be done by running "python -m venv .venv", be sure to install all the required packages to the virtual enviroment and not to the global enviroment as that can lead to conflicts with local installs please refer to the versions below in case of version clash
+the automatition script requires that the project runs on a virtual enviroment. This can be done by running "python -m venv .venv", be sure to install all the required packages to the virtual enviroment and not to the global enviroment as that can lead to conflicts with local installs. 
 
-For further information on the codes, refer to "Code_Description".
+The scripts for the thesis can be found within the "annotated" folder.
+
+The "Corpus_Construction" folder contains the scripts required to preprocess the given Kafka Corpus.
+
+The folders "Sub_Study_1", "Sub_Study_2", and "Sub_Study 3" contain the necessary scripts and information for the individual sub-studies.
+
+For further information on the scripts and studies, refer to "Code_Documentation.pdf".
