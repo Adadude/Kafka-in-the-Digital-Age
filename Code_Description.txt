@@ -342,3 +342,14 @@ run_sub_studies.bat
   8. bertopic_analysis.py
   9. author_analysis.py
 
+SUB-STUDY 2
+--------------------------
+Model: OpenAI GPT-5.6 Sol
+
+Input: 1,638 Goodreads reviews containing Kafkaesque across six Kafka works.
+(kafkaesque_main_comparable_corpus.csv)
+
+Prompt used:
+“analyse the given excel file of reviews containing the keyword "kafkaesque" from 6 Kafka books. Give me a description as to how the keyword "kafkaesque" is used and categorize the usage in each review according to its sentiment (1+0) and also consider the 8 emotions by Plutchik. Output the results directly into ChatGPT, do not create a seperate file. Only detail the findings.”
+
+The entire chat history can be found here: https://chatgpt.com/share/6abbab94-198c-83eb-94cb-14a6a6655744
