@@ -3,8 +3,8 @@ KAFKA GOODREADS CODE DESCRIPTION
 
 This document describes every executable script currently in the repository. The
 project is organized as a corpus-construction pipeline followed by Sub-Study 1
-and Sub-Study 3 analyses. Sub-Study 2 does not currently contain an executable
-script.
+and Sub-Study 3. For Sub-Study 2, ChatGPT was used to perform 
+sentiment and mood analysis, therefore it has no code script.
 
 Recommended execution order
 ---------------------------
@@ -58,6 +58,10 @@ Processing steps:
 - Creates Sub-Study 3 input and copies the tokenized corpus into it.
 - Runs author_analysis.py when either of its output files is missing.
 - Reports that Sub-Study 2 has no executable script in this repository.
+
+CORPUS_CONSTRUCTION
+
+DISCLAIMER: These scripts are presented in the order in which they are meant to be executed, starting with language_detection.py from the Corpus_Construction folder, followed by create_english_corpus.py, etc.
 
 3. language_detection.py
 ------------------------
@@ -148,7 +152,30 @@ tokenize_english_corpus/output/kafka_english_corpus_tokenized.csv
 Important columns created or retained:
 clean_text, tokens, token_count, review_id, and book_title.
 
-6. keyword_and_length_analysis.py
+
+6. boxplot.py
+-------------
+Location: annotated/Corpus_Construction/boxplot/
+
+Purpose:
+Visualizes the distribution of review lengths for the entire English corpus and
+for each Kafka work.
+
+Input:
+tokenize_english_corpus/output/kafka_english_corpus_tokenized.csv
+
+Processing:
+- Checks that book_title and token_count columns are present.
+- Converts token counts to integers and removes rows with missing book or length.
+- Orders books from the lowest to the highest median review length.
+- Builds horizontal boxplots for every book and for the entire corpus.
+- Displays the interquartile range, median, mean, and outliers in a legend.
+- Saves the figure at 300 DPI.
+
+Output:
+boxplot/output/boxplot_review_length_entire_and_books.png
+
+7. keyword_and_length_analysis.py
 ---------------------------------
 Location: annotated/Corpus_Construction/keyword_and_length_analysis/
 
@@ -188,27 +215,6 @@ Outputs:
 The main comparable corpus is the input copied into Sub-Study 1 by
 run_sub_studies.bat.
 
-7. boxplot.py
--------------
-Location: annotated/Corpus_Construction/boxplot/
-
-Purpose:
-Visualizes the distribution of review lengths for the entire English corpus and
-for each Kafka work.
-
-Input:
-tokenize_english_corpus/output/kafka_english_corpus_tokenized.csv
-
-Processing:
-- Checks that book_title and token_count columns are present.
-- Converts token counts to integers and removes rows with missing book or length.
-- Orders books from the lowest to the highest median review length.
-- Builds horizontal boxplots for every book and for the entire corpus.
-- Displays the interquartile range, median, mean, and outliers in a legend.
-- Saves the figure at 300 DPI.
-
-Output:
-boxplot/output/boxplot_review_length_entire_and_books.png
 
 8. local_context_extraction.py
 ------------------------------
@@ -339,8 +345,3 @@ run_sub_studies.bat
   8. bertopic_analysis.py
   9. author_analysis.py
 
-Sub-Study 2
------------
-The repository contains a Sub_Study_2 folder, but it currently has no
-executable Python script. Therefore it is not included in the batch execution
-pipeline.
