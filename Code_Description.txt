@@ -59,9 +59,6 @@ Processing steps:
 - Runs author_analysis.py when either of its output files is missing.
 - Reports that Sub-Study 2 has no executable script in this repository.
 
-CORPUS_CONSTRUCTION
-
-DISCLAIMER: These scripts are presented in the order in which they are meant to be executed, starting with language_detection.py from the Corpus_Construction folder, followed by create_english_corpus.py, etc.
 
 3. language_detection.py
 ------------------------
