@@ -4,7 +4,8 @@ KAFKA GOODREADS CODE DESCRIPTION
 This document describes every executable script currently in the repository. The
 project is organized as a corpus-construction pipeline followed by Sub-Study 1
 and Sub-Study 3. For Sub-Study 2, ChatGPT was used to perform 
-sentiment and mood analysis, therefore it has no code script.
+sentiment and mood analysis, therefore the used prompt as well as the link
+to the chat history can be found at the end of this page.
 
 Recommended execution order
 ---------------------------
