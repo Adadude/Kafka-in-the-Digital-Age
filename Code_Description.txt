@@ -1,0 +1,346 @@
+KAFKA GOODREADS CODE DESCRIPTION
+================================
+
+This document describes every executable script currently in the repository. The
+project is organized as a corpus-construction pipeline followed by Sub-Study 1
+and Sub-Study 3 analyses. Sub-Study 2 does not currently contain an executable
+script.
+
+Recommended execution order
+---------------------------
+1. run_corpus.bat
+2. run_sub_studies.bat
+
+The batch files use the Python interpreter at .venv\Scripts\python.exe. The
+original Kafka Goodreads archive is expected at the repository root as
+KafkaCSV.zip.
+
+1. run_corpus.bat
+-----------------
+Location: repository root
+
+Purpose:
+Runs the complete corpus-construction pipeline in the correct order. It checks
+whether expected outputs already exist and skips completed stages, so rerunning
+the batch file does not repeat every operation unnecessarily.
+
+Processing steps:
+- Verifies that the project virtual environment exists.
+- Verifies that KafkaCSV.zip exists at the repository root.
+- Runs language_detection.py if one or more language-annotated files are missing.
+- Runs create_english_corpus.py if the combined English corpus is missing.
+- Runs tokenize_english_corpus.py if the tokenized corpus is missing.
+- Runs keyword_and_length_analysis.py if any of its expected CSV or boxplot
+  outputs are missing.
+- Runs boxplot.py if the overall review-length boxplot is missing.
+- Stops immediately if a required Python script returns an error.
+
+Main result:
+Creates all preprocessing outputs required by the sub-study scripts.
+
+2. run_sub_studies.bat
+----------------------
+Location: repository root
+
+Purpose:
+Runs the available downstream analyses after corpus construction has finished.
+It also copies required corpus files into the input folders used by Sub-Study 1
+and Sub-Study 3.
+
+Processing steps:
+- Verifies that the virtual environment exists.
+- Runs run_corpus.bat if the comparable corpus has not been created.
+- Creates Sub-Study 1 input and copies the comparable corpus into it.
+- Runs local_context_extraction.py.
+- Runs collocation_analysis.py when its CSV or PNG output is missing.
+- Runs bertopic_analysis.py when its HTML output is missing.
+- Verifies that the tokenized corpus exists.
+- Creates Sub-Study 3 input and copies the tokenized corpus into it.
+- Runs author_analysis.py when either of its output files is missing.
+- Reports that Sub-Study 2 has no executable script in this repository.
+
+3. language_detection.py
+------------------------
+Location: annotated/Corpus_Construction/language_detection/
+
+Purpose:
+Adds language labels and confidence scores to Goodreads review files for six
+Kafka works.
+
+Input:
+KafkaCSV.zip at the repository root. Inside the archive, the script reads these
+files from the csv/ folder:
+- GoodreadsKafkaAmerikaReviews.csv
+- GoodreadsKafkaCastleReviews.csv
+- GoodreadsKafkaHungerArtistReviews.csv
+- GoodreadsKafkaMetamorphosisReviews.csv
+- GoodreadsKafkaPenalColonyReviews.csv
+- GoodreadsKafkaTrialReviews.csv
+
+Processing:
+- Sets langdetect's random seed to make detection reproducible.
+- Reads each CSV directly from the ZIP archive.
+- Examines the text column of every review.
+- Returns unknown with confidence 0.0 for missing, empty, whitespace-only, or
+  non-alphabetic text.
+- Uses langdetect.detect_langs() for other text.
+- Marks a detection as ok when confidence is at least 0.80 and uncertain below
+  that threshold.
+- Catches language-detection errors and records them as unknown.
+- Prints language counts for each book and for the complete collection.
+
+Output folder:
+annotated/Corpus_Construction/language_detection/output/
+
+Outputs:
+Six files ending in _annotated_confidence.csv. Each retains the original data
+and adds language, language_confidence, and language_note columns.
+
+4. create_english_corpus.py
+---------------------------
+Location: annotated/Corpus_Construction/create_english_corpus/
+
+Purpose:
+Combines the six language-annotated book files into one high-confidence English
+corpus.
+
+Input:
+The six _annotated_confidence.csv files created by language_detection.py.
+
+Processing:
+- Reads each book file.
+- Adds source_file and a readable book_title column.
+- Normalizes the language column by trimming whitespace and converting it to
+  lowercase.
+- Keeps only rows where language is en and language_confidence is at least
+  0.80.
+- Concatenates all retained reviews into one DataFrame.
+- Prints the total number of English reviews and the count for each book.
+
+Output:
+annotated/Corpus_Construction/create_english_corpus/output/
+kafka_english_corpus.csv
+
+5. tokenize_english_corpus.py
+-----------------------------
+Location: annotated/Corpus_Construction/tokenize_english_corpus/
+
+Purpose:
+Cleans the English review text and creates a tokenized version for later
+corpus statistics and analysis.
+
+Input:
+create_english_corpus/output/kafka_english_corpus.csv
+
+Processing:
+- Adds a sequential review_id if the input does not already contain one.
+- Decodes HTML entities.
+- Replaces HTML line breaks and tags with spaces.
+- Removes URLs.
+- Collapses repeated whitespace and trims the result.
+- Converts cleaned text to lowercase for tokenization.
+- Extracts alphabetic word tokens and permits internal apostrophes.
+- Calculates token_count for every review.
+
+Output:
+tokenize_english_corpus/output/kafka_english_corpus_tokenized.csv
+
+Important columns created or retained:
+clean_text, tokens, token_count, review_id, and book_title.
+
+6. keyword_and_length_analysis.py
+---------------------------------
+Location: annotated/Corpus_Construction/keyword_and_length_analysis/
+
+Purpose:
+Describes the corpus, finds reviews using Kafkaesque-related vocabulary, and
+creates the main comparable corpus for Sub-Study 1.
+
+Input:
+tokenize_english_corpus/output/kafka_english_corpus_tokenized.csv
+
+Keyword matching:
+The regular expression identifies kafkaesque, kafka-esque, inflected forms such
+as kafkaesquely and kafkaesqueness, and kafkaian. Matching is case-insensitive.
+
+Processing:
+- Converts token counts to numeric values and parses the tokens column back into
+  Python lists when needed.
+- Calculates review count, total tokens, unique word types, and mean review
+  length for the entire corpus and for each book.
+- Removes rows lacking clean text, book title, or review length.
+- Removes rows whose cleaned text is empty.
+- Extracts keyword-containing reviews and records the matched keyword variant.
+- Calculates keyword-review counts and keyword rates for each book.
+- Calculates mean, median, quartiles, IQR, and the upper IQR boundary for the
+  lengths of keyword-containing reviews.
+- Defines the main comparable corpus as keyword-containing reviews longer than
+  10 tokens and no longer than the upper IQR boundary.
+- Creates a boxplot of Kafkaesque review lengths.
+
+Outputs:
+- keyword_and_length_analysis/output/corpus_descriptive_statistics.csv
+- keyword_and_length_analysis/output/kafkaesque_keyword_reviews_all_books.csv
+- keyword_and_length_analysis/output/kafkaesque_keyword_frequency_by_book.csv
+- keyword_and_length_analysis/output/kafkaesque_main_comparable_corpus.csv
+- keyword_and_length_analysis/output/boxplot_kafkaesque_review_lengths.png
+
+The main comparable corpus is the input copied into Sub-Study 1 by
+run_sub_studies.bat.
+
+7. boxplot.py
+-------------
+Location: annotated/Corpus_Construction/boxplot/
+
+Purpose:
+Visualizes the distribution of review lengths for the entire English corpus and
+for each Kafka work.
+
+Input:
+tokenize_english_corpus/output/kafka_english_corpus_tokenized.csv
+
+Processing:
+- Checks that book_title and token_count columns are present.
+- Converts token counts to integers and removes rows with missing book or length.
+- Orders books from the lowest to the highest median review length.
+- Builds horizontal boxplots for every book and for the entire corpus.
+- Displays the interquartile range, median, mean, and outliers in a legend.
+- Saves the figure at 300 DPI.
+
+Output:
+boxplot/output/boxplot_review_length_entire_and_books.png
+
+8. local_context_extraction.py
+------------------------------
+Location: annotated/Sub_Study_1/
+
+Purpose:
+Extracts the local textual context surrounding each Kafkaesque-related keyword
+in the main comparable corpus.
+
+Input:
+input/kafkaesque_main_comparable_corpus.csv
+
+Processing:
+- Finds keyword forms using the same case-insensitive Kafkaesque pattern used in
+  keyword_and_length_analysis.py.
+- Splits each cleaned review into sentences at whitespace following ., ?, or !.
+- For every sentence containing a keyword, retains the previous sentence, the
+  keyword sentence, and the following sentence when available.
+- Stores the review ID, book title, matched keyword, keyword sentence, and full
+  local context.
+- Prints context counts by book and keyword variant.
+
+Output:
+output/kafkaesque_local_contexts_all_six_books.csv
+
+This file is the shared input for the collocation and BERTopic analyses.
+
+9. collocation_analysis.py
+--------------------------
+Location: annotated/Sub_Study_1/
+
+Purpose:
+Finds statistically strong two-word combinations in the extracted Kafkaesque
+local contexts using Pointwise Mutual Information (PMI).
+
+Input:
+output/kafkaesque_local_contexts_all_six_books.csv
+
+Processing:
+- Splits each local context into sentences.
+- Removes duplicate sentence and review combinations so overlapping contexts do
+  not repeatedly count the same sentence.
+- Tokenizes sentences into lowercase words with optional internal apostrophes.
+- Counts unigrams and adjacent word bigrams.
+- Keeps only bigrams appearing at least three times.
+- Calculates PMI as log2(P(bigram) / (P(word1) * P(word2))).
+- Saves up to three example local contexts for each bigram.
+- Sorts results by PMI and then by frequency.
+- Prints and plots the top 40 bigrams.
+
+Outputs:
+- output/all_six_books_collocations_pmi.csv
+- output/all_six_books_collocations_pmi_top40.png
+
+10. bertopic_analysis.py
+------------------------
+Location: annotated/Sub_Study_1/
+
+Purpose:
+Identifies and visualizes recurring topics in the Kafkaesque local contexts.
+
+Input:
+output/kafkaesque_local_contexts_all_six_books.csv
+
+Processing:
+- Loads the local_context column as the document collection.
+- Removes standard English stopwords and project-specific generic terms such as
+  kafka, kafkaesque, book, story, read, and reading from topic representations.
+- Builds a CountVectorizer using unigrams and bigrams. Terms must occur in at
+  least two contexts.
+- Encodes contexts with the all-MiniLM-L6-v2 SentenceTransformer model.
+- Reduces the embeddings with UMAP using cosine distance, five components, and
+  random seed 42.
+- Fits BERTopic to the embeddings and vectorized text.
+- Creates a BERTopic bar-chart visualization and saves it as interactive HTML.
+
+Output:
+output/bertopic_barchart.html
+
+The script requires the BERTopic, UMAP, sentence-transformers, scikit-learn,
+and related model dependencies. The first run may download the embedding model.
+
+11. author_analysis.py
+----------------------
+Location: annotated/Sub_Study_3/
+
+Purpose:
+Extracts and counts author mentions in Goodreads reviews of The Metamorphosis
+using the zero-shot GLiNER named-entity-recognition model.
+
+Input:
+input/kafka_english_corpus_tokenized.csv
+
+Processing:
+- Filters the corpus to rows whose book title contains Metamorphosis.
+- Removes empty text and duplicate clean reviews.
+- Splits long reviews into chunks of up to 250 words.
+- Uses urchade/gliner_small-v2.1 with the label author.
+- Retains detections with confidence at least 0.50.
+- Uses CUDA when available and CPU otherwise. Batch sizes are larger on CUDA.
+- Cleans detected names and records review ID, book, chunk number, entity text,
+  normalized text, label, confidence score, and a 120-character context window.
+- Writes all raw detections.
+- Applies a manual alias dictionary to group spelling and name variants under
+  canonical names such as Franz Kafka, Albert Camus, and Vladimir Nabokov.
+- Aggregates canonical mentions by total mentions, distinct reviews, average
+  confidence, and one example context.
+
+Outputs:
+- output/metamorphosis_gliner_entities_raw.csv
+- output/metamorphosis_canonical_entity_counts.csv
+
+If no entities are detected, only the raw output is written and no aggregated
+canonical counts are created.
+
+Pipeline summary
+----------------
+run_corpus.bat
+  1. language_detection.py
+  2. create_english_corpus.py
+  3. tokenize_english_corpus.py
+  4. keyword_and_length_analysis.py
+  5. boxplot.py
+
+run_sub_studies.bat
+  6. local_context_extraction.py
+  7. collocation_analysis.py
+  8. bertopic_analysis.py
+  9. author_analysis.py
+
+Sub-Study 2
+-----------
+The repository contains a Sub_Study_2 folder, but it currently has no
+executable Python script. Therefore it is not included in the batch execution
+pipeline.
